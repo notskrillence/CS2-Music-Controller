@@ -229,15 +229,12 @@ src/cs2mc/sound_player.py           Overlapping WAV/MP3 playback
 installer/                          Inno Setup definition
 ```
 
-## Current scope
-
-Version 0.2.3 deliberately excludes automatic updating, accounts, payments, Faceit automation, live tactical overlays, and map-position analysis. The next engineering step is a signed release pipeline with versioned update manifests.
 
 ## Credits
 
 Created by **skrilll**.
 
-- GitHub: **notskrillence** — <https://github.com/notskrillence/CS2-Music-Controller>
+- GitHub: **notskrillence**
 - Discord: **skrilll**
 
 ## Contributing
