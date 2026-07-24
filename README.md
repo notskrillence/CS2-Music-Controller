@@ -10,7 +10,9 @@
     <a href="https://github.com/notskrillence/CS2-Music-Controller">GitHub</a>
   </p>
 </div>
-
+<div align="center">
+  <img src="assets/Untitled.png" alt="Main Page">
+</div>
 ## Status
 
 This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
@@ -37,9 +39,7 @@ On first launch, the application searches Steam registry locations, standard Ste
 The generated integration sends only the data used by the application to `127.0.0.1` and includes a unique local token.
 
 ### Context-aware music levels
-<div align="center">
-  <img src="assets/Untitled.png" alt="Main Page">
-</div>
+
 Set a separate music volume for:
 
 | State | Behavior |
