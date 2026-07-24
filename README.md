@@ -13,6 +13,7 @@
 <div align="center">
   <img src="assets/Untitled.png" alt="Main Page">
 </div>
+
 ## Status
 
 This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
