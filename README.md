@@ -15,17 +15,13 @@
 
 This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
 
-- Native PySide6 desktop interface with an integrated frameless title bar
-- Native system dragging with Windows snap behavior and font-independent window controls
 - Windows per-process audio control
 - Automatic CS2 cfg discovery
 - Game State Integration setup and repair
 - One-click profiles, presets, and Ctrl+1 through Ctrl+5 switching
 - Custom WAV event sounds and WAV/MP3 kill-streak packs
-- Five-step kill-streak sequences
-- Near-AMOLED Material-inspired themes with optional album-derived accents
-- Rounded custom sliders, progress indicators, scrollbars, and clipped album artwork
-- Built-in About page and direct repository links
+- Custom kill-streak sequences
+- Material-inspired themes with optional album-derived accents
 - Localhost-only authenticated listener
 
 ## Features
