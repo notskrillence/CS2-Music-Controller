@@ -95,7 +95,6 @@ Requirements:
 
 - Windows 10 or Windows 11
 - Python 3.11+
-- Counter-Strike 2 installed through Steam
 
 Double-click:
 
@@ -214,10 +213,6 @@ src/cs2mc/config.py            Atomic settings and profile storage
 src/cs2mc/sound_player.py      Low-latency WAV playback
 installer/                     Inno Setup definition
 ```
-
-## Current scope
-
-Version 0.2 deliberately excludes automatic updating, accounts, payments, Faceit automation, live tactical overlays, and map-position analysis. The next engineering step is a signed release pipeline with versioned update manifests.
 
 ## Contributing
 
