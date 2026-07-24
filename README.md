@@ -37,7 +37,9 @@ On first launch, the application searches Steam registry locations, standard Ste
 The generated integration sends only the data used by the application to `127.0.0.1` and includes a unique local token.
 
 ### Context-aware music levels
-
+<div align="center">
+  <img src="assets/Untitled.png" alt="Main Page">
+</div>
 Set a separate music volume for:
 
 | State | Behavior |
