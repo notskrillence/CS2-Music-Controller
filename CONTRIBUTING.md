@@ -8,11 +8,12 @@ Changes involving account systems, payments, matchmaking automation, live tactic
 
 ## Development workflow
 
-1. Create a focused branch.
-2. Add or update tests for behavior changes.
-3. Run `pytest -q`.
-4. Test the native interface on Windows 10 or 11 with CS2 and at least one supported media player.
-5. Keep pull requests small enough to review directly.
+1. Run `setup_dev.bat` once to create the environment and install development dependencies.
+2. Create a focused branch.
+3. Add or update tests for behavior changes.
+4. Run `.\.venv\Scripts\python.exe -m pytest -q`.
+5. Test the native interface on Windows 10 or 11 with CS2 and at least one supported media player.
+6. Keep pull requests small enough to review directly.
 
 ## Code principles
 

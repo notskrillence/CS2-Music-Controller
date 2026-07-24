@@ -34,9 +34,13 @@ DEFAULT_VOLUMES = {
     "warmup": 100,
 }
 
+KILL_STREAK_STEPS = tuple(str(i) for i in range(1, 6))
+
 
 @dataclass(slots=True)
 class Profile:
+    """Music/state-audio profile. Kill-streak packs are stored independently."""
+
     id: str
     name: str
     volumes: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_VOLUMES))
@@ -46,11 +50,6 @@ class Profile:
     event_sound_volume: int = 70
     event_sounds: dict[str, str] = field(
         default_factory=lambda: {key: "" for key in STATE_KEYS}
-    )
-    kill_streak_enabled: bool = True
-    kill_streak_volume: int = 90
-    kill_streak_sounds: dict[str, str] = field(
-        default_factory=lambda: {str(i): "" for i in range(1, 6)}
     )
 
     def normalized(self) -> "Profile":
@@ -65,14 +64,8 @@ class Profile:
 
         self.fade_duration = max(0.0, min(3.0, float(self.fade_duration)))
         self.event_sound_volume = max(0, min(100, int(self.event_sound_volume)))
-        self.kill_streak_volume = max(0, min(100, int(self.kill_streak_volume)))
-
         self.event_sounds = {
             key: str(self.event_sounds.get(key, "")) for key in STATE_KEYS
-        }
-        self.kill_streak_sounds = {
-            str(i): str(self.kill_streak_sounds.get(str(i), ""))
-            for i in range(1, 6)
         }
         return self
 
@@ -90,11 +83,48 @@ class Profile:
             event_sounds_enabled=bool(data.get("event_sounds_enabled", False)),
             event_sound_volume=int(data.get("event_sound_volume", 70)),
             event_sounds=dict(data.get("event_sounds", {})),
-            kill_streak_enabled=bool(data.get("kill_streak_enabled", True)),
-            kill_streak_volume=int(data.get("kill_streak_volume", 90)),
-            kill_streak_sounds=dict(data.get("kill_streak_sounds", {})),
         )
         return profile.normalized()
+
+
+@dataclass(slots=True)
+class KillStreakProfile:
+    """Independent five-step kill-streak sound profile."""
+
+    id: str
+    name: str
+    enabled: bool = True
+    volume: int = 90
+    sounds: dict[str, str] = field(
+        default_factory=lambda: {key: "" for key in KILL_STREAK_STEPS}
+    )
+
+    def normalized(self) -> "KillStreakProfile":
+        self.id = str(self.id or "tones")
+        self.name = str(self.name or "Kill streak profile")
+        self.enabled = bool(self.enabled)
+        try:
+            volume = int(self.volume)
+        except (TypeError, ValueError):
+            volume = 90
+        self.volume = max(0, min(100, volume))
+        self.sounds = {
+            key: str(self.sounds.get(key, "")) for key in KILL_STREAK_STEPS
+        }
+        return self
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self.normalized())
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "KillStreakProfile":
+        return cls(
+            id=str(data.get("id", "tones")),
+            name=str(data.get("name", "Tones")),
+            enabled=bool(data.get("enabled", True)),
+            volume=int(data.get("volume", 90)),
+            sounds=dict(data.get("sounds", {})),
+        ).normalized()
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,6 +180,7 @@ def _is_hex_color(value: str) -> bool:
 @dataclass(frozen=True, slots=True)
 class RuntimeSettings:
     active_profile_id: str
+    active_kill_streak_profile_id: str
     cs2_cfg_path: str
     gsi_token: str
     port: int = 1337
@@ -166,8 +197,6 @@ class GameSnapshot:
     map_round: int | None = None
     health: int | None = None
     bomb_state: str = ""
-
-
 
 
 @dataclass(frozen=True, slots=True)

@@ -6,7 +6,8 @@
     <a href="#features">Features</a> ·
     <a href="#installation">Installation</a> ·
     <a href="#how-it-works">How it works</a> ·
-    <a href="#development">Development</a>
+    <a href="#development">Development</a> ·
+    <a href="https://github.com/notskrillence/CS2-Music-Controller">GitHub</a>
   </p>
 </div>
 
@@ -15,13 +16,16 @@
 This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
 
 - Native PySide6 desktop interface with an integrated frameless title bar
+- Native system dragging with Windows snap behavior and font-independent window controls
 - Windows per-process audio control
 - Automatic CS2 cfg discovery
 - Game State Integration setup and repair
 - One-click profiles, presets, and Ctrl+1 through Ctrl+5 switching
-- Custom WAV event sounds
+- Custom WAV event sounds and WAV/MP3 kill-streak packs
 - Five-step kill-streak sequences
 - Near-AMOLED Material-inspired themes with optional album-derived accents
+- Rounded custom sliders, progress indicators, scrollbars, and clipped album artwork
+- Built-in About page and direct repository links
 - Localhost-only authenticated listener
 
 ## Features
@@ -58,18 +62,18 @@ Each supported state can play an optional WAV file when the state begins. State 
 
 ### Kill-streak sequences
 
-Assign a different WAV to kills one through five. The sequence uses CS2's round-kill value and resets when the map round changes. A lightweight default five-tone sequence is bundled so the feature works immediately.
+Kill-streak sound profiles are independent from music profiles. Assign WAV or MP3 audio to kills one through five, then switch packs directly from the Kill Streaks page without changing any music levels. The sequence uses CS2's round-kill value and resets when the map round changes. The three built-in profiles are **VALORANT**, **Reaver**, and **Tones**. Their definitions resolve the expected files from `assets/sounds/default`, and missing files are identified directly in the interface.
 
 ### Profiles and presets
 
-Profiles store the complete configuration:
+Audio profiles store:
 
 - State volumes
 - Fade duration
 - Target media process
-- State transition sounds
-- Kill-streak sounds
-- Sound volumes and enable switches
+- State transition sounds and their volume/enable state
+
+Kill-streak profiles are stored and switched independently, including their five sound files, volume, and enable state.
 
 Bundled presets provide three starting points: **Balanced**, **Focus**, and **Cinematic**. Profiles switch immediately from the integrated title bar or one-click cards. They can also be created, renamed, duplicated, imported, exported, and deleted. The first five profiles are available through `Ctrl+1` to `Ctrl+5`.
 
@@ -81,7 +85,7 @@ The interface uses a near-AMOLED surface hierarchy and one coordinated accent ro
 - **CS2MC dark** — stable branded dark palette
 - **Custom seed** — user-selected accent with contrast, surface darkness, radius, aura, and motion controls
 
-Bomb, warning, success, and error colors remain semantic and do not change with album artwork. Essential fonts and interface assets are local; the application does not depend on an internet font request.
+Bomb, warning, success, and error colors remain semantic and do not change with album artwork. Essential fonts and interface assets are local; the application does not depend on an internet font request. Window controls and compact action icons are painter-drawn, avoiding inconsistent symbol-font fallbacks.
 
 ### Music target selection
 
@@ -95,14 +99,21 @@ Requirements:
 
 - Windows 10 or Windows 11
 - Python 3.11+
+- Counter-Strike 2 installed through Steam
 
-Double-click:
+Run the one-time development setup:
+
+```text
+setup_dev.bat
+```
+
+Then double-click:
 
 ```text
 run_dev.bat
 ```
 
-The script creates `.venv`, installs dependencies, and launches the native application.
+`run_dev.bat` launches through `pythonw.exe` as a detached GUI process, so no command prompt remains open.
 
 ### Build the Windows installer
 
@@ -117,7 +128,7 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 The build uses PyInstaller's `onedir` mode for faster startup and simpler diagnosis. The final installer is written to:
 
 ```text
-installer\output\CS2MusicController-Setup-0.2.0.exe
+installer\output\CS2MusicController-Setup-0.2.3.exe
 ```
 
 When Inno Setup is unavailable, the portable build remains in `dist\CS2MusicController`.
@@ -133,7 +144,7 @@ Authenticated 127.0.0.1 listener
     ▼
 State resolver ───────────────► Native dashboard
     │                              │
-    ├── state transition           └── QSoundEffect WAV playback
+    ├── state transition           └── WAV/MP3 sound playback
     │
     └── coalesced volume command
              │
@@ -156,8 +167,9 @@ Application data is stored in:
 Contents:
 
 ```text
-settings.json       Active profile, CS2 path, listener token, port, and appearance roles
-profiles\*.json     User profiles
+settings.json                    Active audio/kill-streak profiles, CS2 path, token, port, and appearance
+profiles\*.json                  Audio profiles
+kill_streak_profiles\*.json      Independent kill-streak sound profiles
 ```
 
 The CS2 integration file is:
@@ -170,13 +182,16 @@ Deleting that file disconnects CS2 from the application. The Setup page can rein
 
 ## Development
 
-Install development dependencies and run tests:
+Install development dependencies once:
+
+```text
+setup_dev.bat
+```
+
+Run tests when making changes:
 
 ```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements-dev.txt
-pytest -q
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
 For interface demonstrations without launching CS2, start the application and send a synthetic state:
@@ -192,27 +207,42 @@ Current tests cover:
 - Rejection of non-CS2 payloads
 - Steam library VDF parsing
 - Local tokenized GSI generation
-- Profile creation, rename, persistence, switching, and deletion
+- Audio-profile creation, rename, persistence, switching, and deletion
+- Independent kill-streak profile defaults, switching, persistence, and legacy migration
 - Appearance migration, normalization, and persistence
 - Dynamic accent generation with neutral AMOLED surfaces
 
 ## Project structure
 
 ```text
-app.py                         Application entry point
-src/cs2mc/gui.py               Native pages, shell, and onboarding
-src/cs2mc/ui_components.py     Title bar and reusable profile components
-src/cs2mc/theme.py             Material-inspired role palette and stylesheet
-src/cs2mc/media_session.py     Track metadata and album artwork monitor
-src/cs2mc/runtime.py           Runtime coordination
-src/cs2mc/state_engine.py      GSI state and kill resolver
-src/cs2mc/gsi_server.py        Authenticated local listener
-src/cs2mc/audio_controller.py  Background Windows volume control
-src/cs2mc/cs2_locator.py       Steam/CS2 discovery and GSI installer
-src/cs2mc/config.py            Atomic settings and profile storage
-src/cs2mc/sound_player.py      Low-latency WAV playback
-installer/                     Inno Setup definition
+app.py                              Application entry point
+src/cs2mc/gui.py                    Window shell, navigation registry, and coordination
+src/cs2mc/ui_components.py          Painter-drawn controls and reusable widgets
+src/cs2mc/ui_pages/                 One module per application page
+src/cs2mc/app_metadata.py           Repository, author, and product metadata
+src/cs2mc/external_links.py         Centralized trusted-link handling
+src/cs2mc/theme.py                  Material-inspired roles, Qt palette, and stylesheet
+src/cs2mc/media_session.py          Track metadata and album artwork monitor
+src/cs2mc/runtime.py                Runtime coordination
+src/cs2mc/state_engine.py           GSI state and kill resolver
+src/cs2mc/gsi_server.py             Authenticated local listener
+src/cs2mc/audio_controller.py       Background Windows volume control
+src/cs2mc/cs2_locator.py            Steam/CS2 discovery and GSI installer
+src/cs2mc/config.py                 Atomic settings and profile storage
+src/cs2mc/sound_player.py           Overlapping WAV/MP3 playback
+installer/                          Inno Setup definition
 ```
+
+## Current scope
+
+Version 0.2.3 deliberately excludes automatic updating, accounts, payments, Faceit automation, live tactical overlays, and map-position analysis. The next engineering step is a signed release pipeline with versioned update manifests.
+
+## Credits
+
+Created by **skrilll**.
+
+- GitHub: **notskrillence** — <https://github.com/notskrillence/CS2-Music-Controller>
+- Discord: **skrilll**
 
 ## Contributing
 

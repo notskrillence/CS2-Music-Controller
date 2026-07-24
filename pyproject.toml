@@ -1,6 +1,6 @@
 [project]
 name = "cs2-music-controller"
-version = "0.2.0"
+version = "0.2.3"
 description = "Native Windows music and custom event-sound controller for Counter-Strike 2."
 requires-python = ">=3.11"
 license = { text = "MIT" }

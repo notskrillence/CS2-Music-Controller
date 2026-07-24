@@ -1,0 +1,10 @@
+"""Stable product metadata shared by the UI and release tooling."""
+
+PROJECT_NAME = "CS2 Music Controller"
+PROJECT_SHORT_NAME = "CS2MC"
+PROJECT_DESCRIPTION = "Native Windows music control and custom event sounds for Counter-Strike 2."
+CREATOR_NAME = "skrilll"
+GITHUB_USERNAME = "notskrillence"
+GITHUB_URL = "https://github.com/notskrillence/CS2-Music-Controller"
+DISCORD_USERNAME = "skrilll"
+LICENSE_NAME = "MIT License"

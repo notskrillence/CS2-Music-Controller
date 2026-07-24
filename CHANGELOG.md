@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.2.3
+
+- Separated music/audio profiles from kill-streak sound profiles in storage, runtime state, and the interface.
+- Kept the existing Profiles page and title-bar selector dedicated to music profiles.
+- Added an independent sound-profile selector and local management controls to the Kill Streaks page.
+- Added the three bundled kill-streak profiles: **VALORANT**, **Reaver**, and **Tones**.
+- Added automatic migration of pre-0.2.3 embedded kill-streak settings without losing custom paths or volume.
+- Added MP3 playback through Qt Multimedia while retaining the low-latency WAV path.
+- Expanded kill-streak file selection to WAV and MP3.
+- Removed the pinned Python-version invocation from `setup_dev.bat`; it now uses the installed Python launcher/interpreter.
+
+## 0.2.2
+
+- Simplified `run_dev.bat` into a detached `pythonw.exe` launcher with no environment check or persistent command prompt.
+- Added `setup_dev.bat` for explicit one-time environment creation and dependency installation.
+- Removed creator aliases from application metadata, About, README, and release messaging.
+- Replaced the About credit links with reusable obround GitHub and Discord identity controls.
+- The GitHub identity opens `notskrillence/CS2-Music-Controller`; the Discord identity copies `skrilll`.
+- Kept production PyInstaller builds in windowed mode so the installed application does not open a console.
+
+## 0.2.1
+
+- Fixed frameless-window teleporting by preventing the native system move and manual fallback from running simultaneously.
+- Replaced character-based minimize, maximize, restore, close, overflow, and repository controls with painter-drawn Material-style icons.
+- Increased title-bar control targets and added rounded hover and pressed state layers.
+- Added custom-painted audio sliders with centered geometry, direct click-and-drag behavior, and sufficient vertical space to prevent clipping.
+- Added a rounded custom progress indicator and refined both vertical and horizontal scrollbars.
+- Clipped album artwork to its rounded surface and replaced the fallback music glyph with a painter-drawn media mark.
+- Replaced square color and kill-streak markers with circular components.
+- Added a GitHub shortcut, an About page, project credit for skrilll, license information, and repository metadata.
+- Split every UI page into its own module and introduced a route-based navigation registry for safer future expansion.
+- Standardized font weights, selected Fusion for consistent Qt metrics, and removed remaining symbol-font dependencies.
+- Expanded automated coverage to 12 tests.
+
 ## 0.2.0
 
 - Replaced the developer-dashboard appearance with a near-AMOLED Material-inspired role system.

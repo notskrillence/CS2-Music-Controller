@@ -42,3 +42,73 @@ def test_profile_rename_and_appearance_persist(tmp_path: Path):
     store.set_appearance(appearance)
     reloaded = ProfileStore(root=tmp_path)
     assert reloaded.settings.appearance == appearance.normalized()
+
+
+def test_kill_streak_profiles_are_independent(tmp_path: Path):
+    sounds = tmp_path / "sounds"
+    sounds.mkdir()
+    for name in (
+        "valorant-1-kill.mp3",
+        "valorant-2-kills.mp3",
+        "valorant-3-kills.mp3",
+        "valorant-4-kills.mp3",
+        "valorant-5-kills.mp3",
+        "reaverkill1.mp3",
+        "reaverkill2.mp3",
+        "reaverkill3.mp3",
+        "reaverkill4.mp3",
+        "reaverkill5.mp3",
+        "kill_1.wav",
+        "kill_2.wav",
+        "kill_3.wav",
+        "kill_4.wav",
+        "kill_5.wav",
+    ):
+        (sounds / name).write_bytes(b"test")
+
+    store = ProfileStore(root=tmp_path / "app", bundled_sounds=sounds)
+    kill_profiles = store.list_kill_streak_profiles()
+    assert [profile.name for profile in kill_profiles[:3]] == [
+        "VALORANT",
+        "Reaver",
+        "Tones",
+    ]
+    assert store.active_kill_streak_profile().id == "tones"
+
+    audio = store.create_profile("Competitive", store.active_profile())
+    store.set_active_profile(audio.id)
+    store.set_active_kill_streak_profile("reaver")
+    assert store.active_profile().id == audio.id
+    assert store.active_kill_streak_profile().id == "reaver"
+
+    changed = store.active_kill_streak_profile()
+    changed.volume = 63
+    store.save_kill_streak_profile(changed)
+    assert store.get_kill_streak_profile("reaver").volume == 63
+    assert not hasattr(store.active_profile(), "kill_streak_sounds")
+
+
+def test_legacy_embedded_kill_streak_settings_migrate(tmp_path: Path):
+    profiles = tmp_path / "profiles"
+    profiles.mkdir(parents=True)
+    legacy_sound = tmp_path / "custom.mp3"
+    legacy_sound.write_bytes(b"test")
+    (profiles / "default.json").write_text(
+        """{
+  "id": "default",
+  "name": "Balanced",
+  "volumes": {},
+  "kill_streak_enabled": true,
+  "kill_streak_volume": 77,
+  "kill_streak_sounds": {"1": "%s"}
+}""" % str(legacy_sound).replace("\\", "\\\\"),
+        encoding="utf-8",
+    )
+
+    store = ProfileStore(root=tmp_path)
+    migrated = store.active_kill_streak_profile()
+    assert migrated.name == "Balanced Kill Streaks"
+    assert migrated.volume == 77
+    assert migrated.sounds["1"] == str(legacy_sound)
+    raw_audio = (profiles / "default.json").read_text(encoding="utf-8")
+    assert "kill_streak_sounds" not in raw_audio

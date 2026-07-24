@@ -10,7 +10,7 @@ from .audio_controller import MediaVolumeController
 from .config import ProfileStore
 from .gsi_server import GSIServer
 from .media_session import MediaSessionMonitor
-from .models import GameSnapshot, MediaSnapshot, Profile, STATE_LABELS
+from .models import GameSnapshot, KillStreakProfile, MediaSnapshot, Profile, STATE_LABELS
 from .state_engine import GameStateResolver
 
 SnapshotHandler = Callable[[GameSnapshot], None]
@@ -37,6 +37,7 @@ class RuntimeController:
         self.resolver = GameStateResolver()
         self._profile_lock = threading.RLock()
         self._profile = store.active_profile()
+        self._kill_streak_profile = store.active_kill_streak_profile()
         self._current_state = "menu"
         self._last_applied_state: str | None = None
         self._last_snapshot_at = 0.0
@@ -67,6 +68,10 @@ class RuntimeController:
         with self._profile_lock:
             return copy.deepcopy(self._profile)
 
+    def active_kill_streak_profile(self) -> KillStreakProfile:
+        with self._profile_lock:
+            return copy.deepcopy(self._kill_streak_profile)
+
     def update_profile(self, profile: Profile, apply_current_state: bool = True) -> None:
         with self._profile_lock:
             self._profile = copy.deepcopy(profile.normalized())
@@ -75,6 +80,10 @@ class RuntimeController:
             volume = current.volumes.get(self._current_state, current.volumes["menu"])
             self.audio.set_volume(volume, current.fade_duration, current.target_app)
             self._emit_snapshot(current, self._current_state, connected=False)
+
+    def update_kill_streak_profile(self, profile: KillStreakProfile) -> None:
+        with self._profile_lock:
+            self._kill_streak_profile = copy.deepcopy(profile.normalized())
 
     def list_audio_sessions(self) -> list[dict[str, object]]:
         return self.audio.list_audio_sessions()
@@ -86,6 +95,7 @@ class RuntimeController:
         self._current_state = update.state
         with self._profile_lock:
             profile = copy.deepcopy(self._profile)
+            kill_profile = copy.deepcopy(self._kill_streak_profile)
 
         should_apply = update.state_changed or self._last_applied_state is None
         if should_apply:
@@ -96,11 +106,11 @@ class RuntimeController:
             if profile.event_sounds_enabled and self._sound_exists(sound_path):
                 self.on_sound(sound_path, profile.event_sound_volume)
 
-        if update.kill_streak is not None and profile.kill_streak_enabled:
+        if update.kill_streak is not None and kill_profile.enabled:
             streak_key = str(min(5, max(1, update.kill_streak)))
-            streak_sound = profile.kill_streak_sounds.get(streak_key, "")
+            streak_sound = kill_profile.sounds.get(streak_key, "")
             if self._sound_exists(streak_sound):
-                self.on_sound(streak_sound, profile.kill_streak_volume)
+                self.on_sound(streak_sound, kill_profile.volume)
 
         now = time.monotonic()
         if should_apply or update.kill_streak is not None or now - self._last_snapshot_at >= 0.5:

@@ -8,9 +8,39 @@ import threading
 import uuid
 from dataclasses import replace
 from pathlib import Path
-from .models import AppearanceSettings, DEFAULT_VOLUMES, Profile, RuntimeSettings
+
+from .models import (
+    AppearanceSettings,
+    DEFAULT_VOLUMES,
+    KILL_STREAK_STEPS,
+    KillStreakProfile,
+    Profile,
+    RuntimeSettings,
+)
 
 APP_DIR_NAME = "CS2MusicController"
+BUILT_IN_KILL_STREAK_PROFILE_IDS = frozenset({"valorant", "reaver", "tones"})
+
+KILL_STREAK_PACKS: dict[str, dict[str, object]] = {
+    "valorant": {
+        "name": "VALORANT",
+        "files": (
+            "valorant-1-kill.mp3",
+            "valorant-2-kills.mp3",
+            "valorant-3-kills.mp3",
+            "valorant-4-kills.mp3",
+            "valorant-5-kills.mp3",
+        ),
+    },
+    "reaver": {
+        "name": "Reaver",
+        "files": tuple(f"reaverkill{i}.mp3" for i in range(1, 6)),
+    },
+    "tones": {
+        "name": "Tones",
+        "files": tuple(f"kill_{i}.wav" for i in range(1, 6)),
+    },
+}
 
 PRESETS: dict[str, dict] = {
     "Balanced": {
@@ -64,18 +94,22 @@ def app_data_dir() -> Path:
 
 
 class ProfileStore:
-    """Thread-safe profile and application settings persistence."""
+    """Thread-safe audio-profile, kill-streak-profile, and settings persistence."""
 
     def __init__(self, root: Path | None = None, bundled_sounds: Path | None = None):
         self.root = root or app_data_dir()
         self.profiles_dir = self.root / "profiles"
+        self.kill_streak_profiles_dir = self.root / "kill_streak_profiles"
         self.settings_path = self.root / "settings.json"
         self.bundled_sounds = bundled_sounds
         self._lock = threading.RLock()
         self.root.mkdir(parents=True, exist_ok=True)
         self.profiles_dir.mkdir(parents=True, exist_ok=True)
+        self.kill_streak_profiles_dir.mkdir(parents=True, exist_ok=True)
         self._settings = self._load_settings()
+        self._migrate_embedded_kill_streak_profiles()
         self._ensure_default_profile()
+        self._ensure_default_kill_streak_profiles()
 
     def _load_settings(self) -> RuntimeSettings:
         data: dict = {}
@@ -92,6 +126,9 @@ class ProfileStore:
         port = max(1024, min(65535, port))
         settings = RuntimeSettings(
             active_profile_id=str(data.get("active_profile_id") or "default"),
+            active_kill_streak_profile_id=str(
+                data.get("active_kill_streak_profile_id") or "tones"
+            ),
             cs2_cfg_path=str(data.get("cs2_cfg_path") or ""),
             gsi_token=token,
             port=port,
@@ -103,6 +140,7 @@ class ProfileStore:
     def _write_settings(self, settings: RuntimeSettings) -> None:
         payload = {
             "active_profile_id": settings.active_profile_id,
+            "active_kill_streak_profile_id": settings.active_kill_streak_profile_id,
             "cs2_cfg_path": settings.cs2_cfg_path,
             "gsi_token": settings.gsi_token,
             "port": settings.port,
@@ -116,27 +154,109 @@ class ProfileStore:
         temp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         temp.replace(path)
 
+    @staticmethod
+    def _safe_id(value: str) -> str:
+        return "".join(c for c in value if c.isalnum() or c in "-_")
+
     def _profile_path(self, profile_id: str) -> Path:
-        safe_id = "".join(c for c in profile_id if c.isalnum() or c in "-_" )
-        return self.profiles_dir / f"{safe_id}.json"
+        return self.profiles_dir / f"{self._safe_id(profile_id)}.json"
+
+    def _kill_streak_profile_path(self, profile_id: str) -> Path:
+        return self.kill_streak_profiles_dir / f"{self._safe_id(profile_id)}.json"
 
     def _ensure_default_profile(self) -> None:
         if self._profile_path("default").exists():
             return
-        sounds = self.bundled_sounds
-        streaks = {str(i): "" for i in range(1, 6)}
-        if sounds:
-            for i in range(1, 6):
-                candidate = sounds / f"kill_{i}.wav"
-                if candidate.exists():
-                    streaks[str(i)] = str(candidate)
-        default = Profile(
-            id="default",
-            name="Balanced",
-            volumes=dict(DEFAULT_VOLUMES),
-            kill_streak_sounds=streaks,
-        )
-        self.save_profile(default)
+        self.save_profile(Profile(id="default", name="Balanced", volumes=dict(DEFAULT_VOLUMES)))
+
+    def _bundled_sound_paths(self, filenames: tuple[str, ...]) -> dict[str, str]:
+        if not self.bundled_sounds:
+            return {key: "" for key in KILL_STREAK_STEPS}
+        return {
+            str(index): str(self.bundled_sounds / filename)
+            for index, filename in enumerate(filenames, start=1)
+        }
+
+    def _ensure_default_kill_streak_profiles(self) -> None:
+        for profile_id, definition in KILL_STREAK_PACKS.items():
+            path = self._kill_streak_profile_path(profile_id)
+            if path.exists():
+                continue
+            filenames = tuple(str(item) for item in definition["files"])
+            self.save_kill_streak_profile(
+                KillStreakProfile(
+                    id=profile_id,
+                    name=str(definition["name"]),
+                    sounds=self._bundled_sound_paths(filenames),
+                )
+            )
+
+    def _migrate_embedded_kill_streak_profiles(self) -> None:
+        """Move pre-0.2.3 kill settings out of audio profile JSON files once."""
+        active_audio_id = self._settings.active_profile_id
+        active_kill_id = self._settings.active_kill_streak_profile_id
+        migrated_active: str | None = None
+
+        for path in sorted(self.profiles_dir.glob("*.json")):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError, TypeError):
+                continue
+            legacy_keys = {
+                "kill_streak_enabled",
+                "kill_streak_volume",
+                "kill_streak_sounds",
+            }
+            if not legacy_keys.intersection(data):
+                continue
+
+            sounds = {
+                key: str(dict(data.get("kill_streak_sounds", {})).get(key, ""))
+                for key in KILL_STREAK_STEPS
+            }
+            enabled = bool(data.get("kill_streak_enabled", True))
+            try:
+                volume = int(data.get("kill_streak_volume", 90))
+            except (TypeError, ValueError):
+                volume = 90
+
+            filenames = tuple(Path(sounds[key]).name.casefold() for key in KILL_STREAK_STEPS)
+            tones_filenames = tuple(f"kill_{i}.wav" for i in range(1, 6))
+            all_blank = not any(sounds.values())
+            is_bundled_tones = filenames == tones_filenames and enabled and volume == 90
+
+            if is_bundled_tones or all_blank:
+                migrated_id = "tones"
+            else:
+                source_id = str(data.get("id") or path.stem)
+                migrated_id = f"migrated_{self._safe_id(source_id)}"
+                migrated_path = self._kill_streak_profile_path(migrated_id)
+                if not migrated_path.exists():
+                    source_name = str(data.get("name") or "Imported")
+                    self._atomic_write(
+                        migrated_path,
+                        KillStreakProfile(
+                            id=migrated_id,
+                            name=f"{source_name} Kill Streaks",
+                            enabled=enabled,
+                            volume=volume,
+                            sounds=sounds,
+                        ).to_dict(),
+                    )
+
+            if str(data.get("id") or path.stem) == active_audio_id:
+                migrated_active = migrated_id
+
+            for key in legacy_keys:
+                data.pop(key, None)
+            self._atomic_write(path, data)
+
+        if migrated_active and active_kill_id == "tones":
+            self._settings = replace(
+                self._settings,
+                active_kill_streak_profile_id=migrated_active,
+            )
+            self._write_settings(self._settings)
 
     @property
     def settings(self) -> RuntimeSettings:
@@ -159,6 +279,8 @@ class ProfileStore:
             self._settings = replace(self._settings, appearance=clean)
             self._write_settings(self._settings)
         return clean
+
+    # Audio profiles -----------------------------------------------------
 
     def list_profiles(self) -> list[Profile]:
         with self._lock:
@@ -244,3 +366,101 @@ class ProfileStore:
 
     def profiles_by_id(self) -> dict[str, Profile]:
         return {profile.id: profile for profile in self.list_profiles()}
+
+    # Kill-streak profiles -----------------------------------------------
+
+    def list_kill_streak_profiles(self) -> list[KillStreakProfile]:
+        with self._lock:
+            profiles: list[KillStreakProfile] = []
+            for path in sorted(self.kill_streak_profiles_dir.glob("*.json")):
+                try:
+                    profiles.append(
+                        KillStreakProfile.from_dict(json.loads(path.read_text("utf-8")))
+                    )
+                except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                    continue
+            built_in_order = {"valorant": 0, "reaver": 1, "tones": 2}
+            return sorted(
+                profiles,
+                key=lambda item: (
+                    built_in_order.get(item.id, 100),
+                    item.name.casefold(),
+                ),
+            )
+
+    def get_kill_streak_profile(self, profile_id: str) -> KillStreakProfile:
+        with self._lock:
+            path = self._kill_streak_profile_path(profile_id)
+            if not path.exists():
+                path = self._kill_streak_profile_path("tones")
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return KillStreakProfile.from_dict(data)
+
+    def active_kill_streak_profile(self) -> KillStreakProfile:
+        return self.get_kill_streak_profile(self.settings.active_kill_streak_profile_id)
+
+    def save_kill_streak_profile(self, profile: KillStreakProfile) -> KillStreakProfile:
+        with self._lock:
+            profile.normalized()
+            self._atomic_write(
+                self._kill_streak_profile_path(profile.id),
+                profile.to_dict(),
+            )
+            return copy.deepcopy(profile)
+
+    def set_active_kill_streak_profile(self, profile_id: str) -> KillStreakProfile:
+        profile = self.get_kill_streak_profile(profile_id)
+        with self._lock:
+            self._settings = replace(
+                self._settings,
+                active_kill_streak_profile_id=profile.id,
+            )
+            self._write_settings(self._settings)
+        return profile
+
+    def create_kill_streak_profile(
+        self,
+        name: str,
+        source: KillStreakProfile | None = None,
+    ) -> KillStreakProfile:
+        with self._lock:
+            profile_id = uuid.uuid4().hex[:12]
+            if source:
+                data = source.to_dict()
+                data.update({"id": profile_id, "name": name.strip() or "New Sound Profile"})
+                profile = KillStreakProfile.from_dict(data)
+            else:
+                profile = KillStreakProfile(
+                    id=profile_id,
+                    name=name.strip() or "New Sound Profile",
+                )
+            return self.save_kill_streak_profile(profile)
+
+    def rename_kill_streak_profile(
+        self,
+        profile_id: str,
+        name: str,
+    ) -> KillStreakProfile:
+        if profile_id in BUILT_IN_KILL_STREAK_PROFILE_IDS:
+            raise ValueError("Bundled sound-profile names are fixed.")
+        clean_name = name.strip()
+        if not clean_name:
+            raise ValueError("Sound profile name cannot be empty.")
+        with self._lock:
+            profile = self.get_kill_streak_profile(profile_id)
+            profile.name = clean_name
+            return self.save_kill_streak_profile(profile)
+
+    def delete_kill_streak_profile(self, profile_id: str) -> None:
+        if profile_id in BUILT_IN_KILL_STREAK_PROFILE_IDS:
+            raise ValueError("Bundled sound profiles cannot be deleted.")
+        with self._lock:
+            path = self._kill_streak_profile_path(profile_id)
+            if path.exists():
+                path.unlink()
+            if self._settings.active_kill_streak_profile_id == profile_id:
+                self._settings = replace(
+                    self._settings,
+                    active_kill_streak_profile_id="tones",
+                )
+                self._write_settings(self._settings)
