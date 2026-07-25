@@ -11,7 +11,7 @@
     <a href="https://github.com/notskrillence/CS2-Music-Controller">GitHub</a>
   </p>
 </div>
-
+[![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
 ## Status
 
 This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
@@ -118,6 +118,9 @@ run_dev.bat
 
 When upgrading an older checkout, `setup_dev.bat` removes the old full `PySide6` and `PySide6-Addons` packages before installing the lean Essentials dependency.
 
+
+<!-- GitHub badge -->
+[![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
 ### Build the Windows installer
 
 1. Install Python 3.11 and Inno Setup 6.
@@ -237,10 +240,6 @@ src/cs2mc/config.py                 Atomic settings and profile storage
 src/cs2mc/sound_player.py           Overlapping WAV/MP3 playback
 installer/                          Inno Setup definition
 ```
-
-## Current scope
-
-Version 0.2.5 deliberately excludes automatic updating, accounts, payments, Faceit automation, live tactical overlays, and map-position analysis. The next engineering step is a signed release pipeline with versioned update manifests. See the [distribution and launch checklist](docs/distribution.md) for the first public rollout.
 
 ## Credits
 
