@@ -16,8 +16,8 @@
 
 This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
 
-- Native PySide6 desktop interface with an integrated frameless title bar
-- Native system dragging with Windows snap behavior and font-independent window controls
+- Simple to Install
+- Reliable
 - Windows per-process audio control
 - Automatic CS2 cfg discovery
 - Game State Integration setup and repair
@@ -26,8 +26,8 @@ This repository contains the first native desktop release foundation. It focuses
 - Five-step kill-streak sequences
 - Near-AMOLED Material-inspired themes with optional album-derived accents
 - Rounded custom sliders, progress indicators, scrollbars, and clipped album artwork
-- Built-in About page and direct repository links
-- Localhost-only authenticated listener
+- Sleek
+- Localhost-only authenticated listener for maximum security
 
 [![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
 ## Features
