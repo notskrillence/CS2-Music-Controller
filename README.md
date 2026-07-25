@@ -11,6 +11,7 @@
     <a href="https://github.com/notskrillence/CS2-Music-Controller">GitHub</a>
   </p>
 </div>
+
 [![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
 ## Status
 
