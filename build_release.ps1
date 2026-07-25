@@ -11,10 +11,6 @@ if (-not (Test-Path ".venv\Scripts\python.exe")) {
     }
 }
 
-& .\.venv\Scripts\python.exe -m pip install --upgrade pip
-# Clean stale full-PySide6 packages from pre-0.2.4 environments.
-& .\.venv\Scripts\python.exe -m pip uninstall -y PySide6 PySide6-Addons 2>$null | Out-Null
-& .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 
 Remove-Item -Recurse -Force build, dist -ErrorAction SilentlyContinue
 
