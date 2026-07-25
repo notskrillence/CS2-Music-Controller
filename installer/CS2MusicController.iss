@@ -1,5 +1,5 @@
 #define MyAppName "CS2 Music Controller"
-#define MyAppVersion "0.2.3"
+#define MyAppVersion "0.2.5"
 #define MyAppPublisher "skrilll"
 #define MyAppExeName "CS2MusicController.exe"
 
@@ -16,7 +16,7 @@ OutputDir=output
 OutputBaseFilename=CS2MusicController-Setup-{#MyAppVersion}
 SetupIconFile=..\assets\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
-Compression=lzma2
+Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible

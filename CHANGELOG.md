@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.5
+
+- Fixed silent Kill Streaks Test buttons after the installer-size optimization.
+- Replaced the unreliable local-file WinRT MediaPlayer path with Windows MCI for asynchronous WAV and MP3 playback.
+- Added unique MCI aliases so rapid tests and kill sounds can overlap.
+- Added visible runtime error feedback when Windows rejects an audio file instead of failing silently.
+- Added automatic repair of stale absolute paths in the three bundled kill-streak profiles when the source folder or installation directory changes.
+- Preserved user-selected custom sounds while repairing only missing bundled paths.
+- Removed the now-unused WinRT Media Core and Media Playback packages and PyInstaller hidden imports.
+
+## 0.2.4
+
+- Added the repository banner and a GitHub-ready social preview image outside the packaged application assets.
+- Added a practical distribution and launch checklist.
+- Replaced the full `PySide6` dependency with `PySide6-Essentials`.
+- Added automatic removal of stale `PySide6` and `PySide6-Addons` packages from existing development/build environments.
+- Replaced QtMultimedia sound playback with the built-in Windows MediaPlayer API for overlapping WAV/MP3 playback.
+- Disabled Windows media-command integration for event sounds so they do not replace the user's active music session.
+- Added explicit PyInstaller exclusions for unused Qt multimedia, QML, Quick, SQL, test, and UI-loader modules.
+- Added a separate runtime-pruning step for unused Qt plugin trees and build artifacts.
+- Enabled stronger Inno Setup compression and post-build size reporting.
+- Included the uploaded VALORANT and Reaver default sound files in the source package.
+
 ## 0.2.3
 
 - Separated music/audio profiles from kill-streak sound profiles in storage, runtime state, and the interface.

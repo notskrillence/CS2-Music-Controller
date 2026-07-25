@@ -112,3 +112,48 @@ def test_legacy_embedded_kill_streak_settings_migrate(tmp_path: Path):
     assert migrated.sounds["1"] == str(legacy_sound)
     raw_audio = (profiles / "default.json").read_text(encoding="utf-8")
     assert "kill_streak_sounds" not in raw_audio
+
+
+def test_built_in_kill_streak_paths_repair_after_app_moves(tmp_path: Path):
+    old_sounds = tmp_path / "old" / "sounds"
+    new_sounds = tmp_path / "new" / "sounds"
+    old_sounds.mkdir(parents=True)
+    new_sounds.mkdir(parents=True)
+
+    filenames = (
+        "valorant-1-kill.mp3",
+        "valorant-2-kills.mp3",
+        "valorant-3-kills.mp3",
+        "valorant-4-kills.mp3",
+        "valorant-5-kills.mp3",
+        "reaverkill1.mp3",
+        "reaverkill2.mp3",
+        "reaverkill3.mp3",
+        "reaverkill4.mp3",
+        "reaverkill5.mp3",
+        "kill_1.wav",
+        "kill_2.wav",
+        "kill_3.wav",
+        "kill_4.wav",
+        "kill_5.wav",
+    )
+    for filename in filenames:
+        (old_sounds / filename).write_bytes(b"old")
+        (new_sounds / filename).write_bytes(b"new")
+
+    root = tmp_path / "app"
+    original = ProfileStore(root=root, bundled_sounds=old_sounds)
+    customized = original.get_kill_streak_profile("tones")
+    custom_sound = tmp_path / "my-custom.wav"
+    custom_sound.write_bytes(b"custom")
+    customized.sounds["2"] = str(custom_sound)
+    original.save_kill_streak_profile(customized)
+
+    for path in old_sounds.iterdir():
+        path.unlink()
+    old_sounds.rmdir()
+
+    moved = ProfileStore(root=root, bundled_sounds=new_sounds)
+    repaired = moved.get_kill_streak_profile("tones")
+    assert repaired.sounds["1"] == str(new_sounds / "kill_1.wav")
+    assert repaired.sounds["2"] == str(custom_sound)

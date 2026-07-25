@@ -40,3 +40,8 @@ The current build environment does not provide Windows, CS2, Windows audio sessi
 19. Switch among VALORANT, Reaver, and Tones and confirm the audio profile remains unchanged.
 20. Test all five MP3 steps in VALORANT and Reaver plus all five WAV steps in Tones.
 21. Upgrade from a pre-0.2.3 AppData directory and confirm embedded kill-streak settings migrate to an independent sound profile.
+22. Test one WAV and one MP3 sound and confirm neither replaces the user's active Windows media session.
+23. Build a release and record the portable and installer sizes printed by `build_release.ps1`.
+24. Confirm `dist\CS2MusicController` contains no QtMultimedia DLLs or plugins.
+
+25. Test WAV and MP3 buttons in all three bundled kill-streak profiles and confirm Windows MCI playback overlaps without opening a media-control session.

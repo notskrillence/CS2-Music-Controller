@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/app.png" width="112" alt="CS2 Music Controller icon">
+  <img src="docs/images/banner.jpg" width="100%" alt="CS2 Music Controller — smart music ducking and custom game-event sounds for CS2">
   <h1>CS2 Music Controller</h1>
   <p><strong>Native Windows music control and custom event sounds for Counter-Strike 2.</strong></p>
   <p>
@@ -7,6 +7,7 @@
     <a href="#installation">Installation</a> ·
     <a href="#how-it-works">How it works</a> ·
     <a href="#development">Development</a> ·
+    <a href="docs/distribution.md">Distribution guide</a> ·
     <a href="https://github.com/notskrillence/CS2-Music-Controller">GitHub</a>
   </p>
 </div>
@@ -115,6 +116,8 @@ run_dev.bat
 
 `run_dev.bat` launches through `pythonw.exe` as a detached GUI process, so no command prompt remains open.
 
+When upgrading an older checkout, `setup_dev.bat` removes the old full `PySide6` and `PySide6-Addons` packages before installing the lean Essentials dependency.
+
 ### Build the Windows installer
 
 1. Install Python 3.11 and Inno Setup 6.
@@ -128,8 +131,10 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 The build uses PyInstaller's `onedir` mode for faster startup and simpler diagnosis. The final installer is written to:
 
 ```text
-installer\output\CS2MusicController-Setup-0.2.3.exe
+installer\output\CS2MusicController-Setup-0.2.5.exe
 ```
+
+The release environment installs `PySide6-Essentials` instead of the full PySide6 alias. Sound playback uses the built-in Windows MCI service rather than QtMultimedia or WinRT MediaPlayer, so the installer does not carry the PySide6 Addons multimedia stack or dedicated WinRT playback wheels. The build also excludes unused QML/Quick modules, removes optional Qt plugin trees, enables stronger Inno Setup compression, and prints the exact portable and installer sizes after each build.
 
 When Inno Setup is unavailable, the portable build remains in `dist\CS2MusicController`.
 
@@ -235,7 +240,7 @@ installer/                          Inno Setup definition
 
 ## Current scope
 
-Version 0.2.3 deliberately excludes automatic updating, accounts, payments, Faceit automation, live tactical overlays, and map-position analysis. The next engineering step is a signed release pipeline with versioned update manifests.
+Version 0.2.5 deliberately excludes automatic updating, accounts, payments, Faceit automation, live tactical overlays, and map-position analysis. The next engineering step is a signed release pipeline with versioned update manifests. See the [distribution and launch checklist](docs/distribution.md) for the first public rollout.
 
 ## Credits
 

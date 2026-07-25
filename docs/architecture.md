@@ -22,7 +22,7 @@
 
 `MediaVolumeController` owns a dedicated COM thread. It keeps only the newest pending command and interrupts a fade when a newer command arrives. This prevents a queue of obsolete volume transitions during rapid state changes.
 
-Qt signals carry snapshots, logs, audio-session lists, media metadata, and sound requests back to the interface thread. `QSoundEffect` provides a low-latency WAV path, while `QMediaPlayer` and `QAudioOutput` handle MP3 packs without blocking the GSI or COM workers.
+Qt signals carry snapshots, logs, audio-session lists, media metadata, and sound requests back to the interface thread. `SoundPlayer` owns short-lived playback handles while `WindowsSoundBackend` uses the built-in Windows MCI service for asynchronous WAV and MP3 playback. This keeps codec work outside the GSI and COM workers and avoids shipping QtMultimedia.
 
 `MediaSessionMonitor` polls Windows media metadata at low frequency and emits only when the current track identity changes. Thumbnail bytes are capped, sampled once, and cached by artwork hash. The generated accent is applied to Material-inspired color roles while semantic danger, warning, and success colors remain fixed.
 

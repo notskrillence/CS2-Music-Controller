@@ -66,6 +66,7 @@ class MainWindow(QMainWindow):
         self.store = store
         self.bridge = bridge
         self.sound_player = SoundPlayer(self)
+        self.sound_player.playback_failed.connect(self._log_received)
         self.runtime: RuntimeController | None = None
         self.current_profile = store.active_profile()
         self.current_kill_streak_profile = store.active_kill_streak_profile()
@@ -565,6 +566,7 @@ class MainWindow(QMainWindow):
             self._position_resize_handles()
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        self.sound_player.close_all()
         event.accept()
 
 

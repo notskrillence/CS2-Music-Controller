@@ -180,16 +180,51 @@ class ProfileStore:
     def _ensure_default_kill_streak_profiles(self) -> None:
         for profile_id, definition in KILL_STREAK_PACKS.items():
             path = self._kill_streak_profile_path(profile_id)
-            if path.exists():
-                continue
             filenames = tuple(str(item) for item in definition["files"])
-            self.save_kill_streak_profile(
-                KillStreakProfile(
+            bundled_paths = self._bundled_sound_paths(filenames)
+
+            if not path.exists():
+                self.save_kill_streak_profile(
+                    KillStreakProfile(
+                        id=profile_id,
+                        name=str(definition["name"]),
+                        sounds=bundled_paths,
+                    )
+                )
+                continue
+
+            # Built-in profiles store absolute asset paths. Repair only stale
+            # bundled paths when the app is moved, upgraded, or installed to a
+            # new directory. Existing custom replacements remain untouched.
+            try:
+                profile = KillStreakProfile.from_dict(
+                    json.loads(path.read_text(encoding="utf-8"))
+                )
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                profile = KillStreakProfile(
                     id=profile_id,
                     name=str(definition["name"]),
-                    sounds=self._bundled_sound_paths(filenames),
+                    sounds=bundled_paths,
                 )
-            )
+
+            changed = profile.name != str(definition["name"])
+            profile.name = str(definition["name"])
+            for index, filename in enumerate(filenames, start=1):
+                key = str(index)
+                current = profile.sounds.get(key, "")
+                expected = bundled_paths.get(key, "")
+                current_path = Path(current) if current else None
+                is_stale_bundled_path = bool(
+                    current_path
+                    and current_path.name.casefold() == filename.casefold()
+                    and not current_path.is_file()
+                )
+                if is_stale_bundled_path and expected:
+                    profile.sounds[key] = expected
+                    changed = True
+
+            if changed:
+                self.save_kill_streak_profile(profile)
 
     def _migrate_embedded_kill_streak_profiles(self) -> None:
         """Move pre-0.2.3 kill settings out of audio profile JSON files once."""
