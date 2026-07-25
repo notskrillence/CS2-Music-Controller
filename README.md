@@ -7,12 +7,12 @@
     <a href="#installation">Installation</a> ·
     <a href="#how-it-works">How it works</a> ·
     <a href="#development">Development</a> ·
-    <a href="docs/distribution.md">Distribution guide</a> ·
+    <a href="docs/distribution.md">[![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)</a> ·
     <a href="https://github.com/notskrillence/CS2-Music-Controller">GitHub</a>
   </p>
 </div>
 
-[![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
+
 ## Status
 
 This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
