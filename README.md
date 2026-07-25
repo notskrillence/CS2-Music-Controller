@@ -29,6 +29,8 @@ This repository contains the first native desktop release foundation. It focuses
 - Sleek
 - Localhost-only authenticated listener for maximum security
 
+Demo: https://youtu.be/v3huClU12kA
+
 [![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
 ## Features
 
