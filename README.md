@@ -28,6 +28,7 @@ This repository contains the first native desktop release foundation. It focuses
 - Rounded custom sliders, progress indicators, scrollbars, and clipped album artwork
 - Built-in About page and direct repository links
 - Localhost-only authenticated listener
+
 [![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
 ## Features
 
