@@ -254,7 +254,10 @@ class TitleBar(QFrame):
         self._loading_profiles = False
 
     def set_connection(self, connected: bool) -> None:
-        self.connection.setText("CS2 connected" if connected else "CS2 idle")
+        text = "CS2 connected" if connected else "CS2 idle"
+        if self.connection.text() == text:
+            return
+        self.connection.setText(text)
         self.connection.setObjectName("Success" if connected else "Faint")
         repolish(self.connection)
 

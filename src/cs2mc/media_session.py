@@ -23,11 +23,11 @@ class MediaSessionMonitor:
         self,
         on_media: MediaHandler,
         on_log: LogHandler | None = None,
-        interval_seconds: float = 1.5,
+        interval_seconds: float = 5.0,
     ) -> None:
         self.on_media = on_media
         self.on_log = on_log or (lambda _: None)
-        self.interval_seconds = max(0.75, float(interval_seconds))
+        self.interval_seconds = max(2.5, float(interval_seconds))
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self._last_identity: tuple[str, str, str] | None = None

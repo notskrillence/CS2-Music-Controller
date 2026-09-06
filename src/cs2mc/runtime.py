@@ -41,6 +41,8 @@ class RuntimeController:
         self._current_state = "menu"
         self._last_applied_state: str | None = None
         self._last_snapshot_at = 0.0
+        self._last_fingerprint: tuple | None = None
+        self._sound_cache: dict[str, bool] = {}
         settings = store.settings
         self.server = GSIServer(
             port=settings.port,
@@ -76,6 +78,7 @@ class RuntimeController:
         with self._profile_lock:
             self._profile = copy.deepcopy(profile.normalized())
             current = copy.deepcopy(self._profile)
+            self._sound_cache.clear()
         if apply_current_state:
             volume = current.volumes.get(self._current_state, current.volumes["menu"])
             self.audio.set_volume(volume, current.fade_duration, current.target_app)
@@ -84,6 +87,7 @@ class RuntimeController:
     def update_kill_streak_profile(self, profile: KillStreakProfile) -> None:
         with self._profile_lock:
             self._kill_streak_profile = copy.deepcopy(profile.normalized())
+            self._sound_cache.clear()
 
     def list_audio_sessions(self) -> list[dict[str, object]]:
         return self.audio.list_audio_sessions()
@@ -93,6 +97,18 @@ class RuntimeController:
         if update is None:
             return
         self._current_state = update.state
+        # Cheap fingerprint first: skip lock/deepcopy/work entirely for the
+        # ~99% of throttled GSI POSTs that change nothing actionable.
+        fingerprint = (
+            update.state,
+            update.round_kills,
+            update.map_round,
+            update.bomb_state,
+        )
+        now = time.monotonic()
+        if fingerprint == self._last_fingerprint and now - self._last_snapshot_at < 5.0:
+            return
+        self._last_fingerprint = fingerprint
         with self._profile_lock:
             profile = copy.deepcopy(self._profile)
             kill_profile = copy.deepcopy(self._kill_streak_profile)
@@ -103,17 +119,16 @@ class RuntimeController:
             self.audio.set_volume(volume, profile.fade_duration, profile.target_app)
             self._last_applied_state = update.state
             sound_path = profile.event_sounds.get(update.state, "")
-            if profile.event_sounds_enabled and self._sound_exists(sound_path):
+            if profile.event_sounds_enabled and self._sound_exists_cached(sound_path):
                 self.on_sound(sound_path, profile.event_sound_volume)
 
         if update.kill_streak is not None and kill_profile.enabled:
             streak_key = str(min(5, max(1, update.kill_streak)))
             streak_sound = kill_profile.sounds.get(streak_key, "")
-            if self._sound_exists(streak_sound):
+            if self._sound_exists_cached(streak_sound):
                 self.on_sound(streak_sound, kill_profile.volume)
 
-        now = time.monotonic()
-        if should_apply or update.kill_streak is not None or now - self._last_snapshot_at >= 0.5:
+        if should_apply or update.kill_streak is not None or now - self._last_snapshot_at >= 5.0:
             self._last_snapshot_at = now
             snapshot = GameSnapshot(
                 state=update.state,
@@ -135,6 +150,18 @@ class RuntimeController:
             connected=connected,
         )
         self.on_snapshot(snapshot)
+
+    def _sound_exists_cached(self, path: str) -> bool:
+        # Path(path).is_file() is a syscall + stat; cache results since sound
+        # paths only change when the user edits a profile.
+        cached = self._sound_cache.get(path) if path else None
+        if cached is None:
+            cached = self._sound_exists(path)
+            if len(self._sound_cache) > 64:
+                self._sound_cache.clear()
+            if path:
+                self._sound_cache[path] = cached
+        return cached
 
     @staticmethod
     def _sound_exists(path: str) -> bool:

@@ -15,6 +15,7 @@ class DashboardPage(QWidget):
         super().__init__()
         self.palette: ThemePalette | None = None
         self.last_snapshot: GameSnapshot | None = None
+        self._state_color: str | None = None
 
         root = QVBoxLayout(self)
         root.setContentsMargins(28, 24, 28, 24)
@@ -125,7 +126,10 @@ class DashboardPage(QWidget):
         return value_label
 
     def set_palette(self, palette: ThemePalette) -> None:
+        if palette is self.palette:
+            return
         self.palette = palette
+        self._state_color: str | None = None
         if self.last_snapshot:
             self._apply_state_color(self.last_snapshot.state)
 
@@ -134,14 +138,24 @@ class DashboardPage(QWidget):
 
     def update_snapshot(self, snapshot: GameSnapshot) -> None:
         self.last_snapshot = snapshot
-        self.state_label.setText(snapshot.state_label)
-        self.volume_bar.setValue(snapshot.music_volume)
-        self.volume_value.setText(f"{snapshot.music_volume}%")
-        self.kills_value.setText(str(snapshot.round_kills))
-        self.round_value.setText("N/A" if snapshot.map_round is None else str(snapshot.map_round + 1))
-        self.connection.setText("CS2 connected" if snapshot.connected else "Profile applied")
-        self.connection.setObjectName("Success" if snapshot.connected else "Muted")
-        repolish(self.connection)
+        if self.state_label.text() != snapshot.state_label:
+            self.state_label.setText(snapshot.state_label)
+        if self.volume_bar.value() != snapshot.music_volume:
+            self.volume_bar.setValue(snapshot.music_volume)
+        volume_text = f"{snapshot.music_volume}%"
+        if self.volume_value.text() != volume_text:
+            self.volume_value.setText(volume_text)
+        kills_text = str(snapshot.round_kills)
+        if self.kills_value.text() != kills_text:
+            self.kills_value.setText(kills_text)
+        round_text = "N/A" if snapshot.map_round is None else str(snapshot.map_round + 1)
+        if self.round_value.text() != round_text:
+            self.round_value.setText(round_text)
+        connected_text = "CS2 connected" if snapshot.connected else "Profile applied"
+        if self.connection.text() != connected_text:
+            self.connection.setText(connected_text)
+            self.connection.setObjectName("Success" if snapshot.connected else "Muted")
+            repolish(self.connection)
         self._apply_state_color(snapshot.state)
 
     def _apply_state_color(self, state: str) -> None:
@@ -156,6 +170,9 @@ class DashboardPage(QWidget):
             color = palette.text_muted
         else:
             color = palette.primary
+        if color == self._state_color:
+            return
+        self._state_color = color
         self.state_label.setStyleSheet(f"color:{color};")
         # The custom progress widget reads Highlight from its own palette.
         progress_palette = self.volume_bar.palette()

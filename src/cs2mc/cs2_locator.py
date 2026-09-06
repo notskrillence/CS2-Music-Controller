@@ -109,9 +109,9 @@ def render_gsi_config(port: int, token: str) -> str:
 {{
     "uri" "http://127.0.0.1:{port}/gsi"
     "timeout" "5.0"
-    "buffer" "0.05"
-    "throttle" "0.10"
-    "heartbeat" "15.0"
+    "buffer" "0.25"
+    "throttle" "0.5"
+    "heartbeat" "30.0"
     "auth"
     {{
         "token" "{token}"
@@ -123,7 +123,6 @@ def render_gsi_config(port: int, token: str) -> str:
         "round" "1"
         "player_id" "1"
         "player_state" "1"
-        "player_match_stats" "1"
     }}
 }}
 '''

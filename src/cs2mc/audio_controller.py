@@ -42,6 +42,8 @@ class MediaVolumeController:
         self._thread.start()
         self._available = os.name == "nt"
         self._last_target: str | None = None
+        self._cached_volume = None
+        self._cached_process = ""
 
     @property
     def available(self) -> bool:
@@ -125,6 +127,10 @@ class MediaVolumeController:
                 try:
                     self._execute(command)
                 except Exception as exc:
+                    # A stale cached session (e.g. player restarted) fails here;
+                    # drop the cache so the next command re-enumerates sessions.
+                    self._cached_volume = None
+                    self._cached_process = ""
                     self.on_log(f"Audio control error: {exc}")
                 finally:
                     if command.completion:
@@ -181,6 +187,11 @@ class MediaVolumeController:
         resolved_target = target_app or self._get_active_media_process()
         if not resolved_target:
             return None, None
+        # COM session enumeration is the main CPU cost per volume change.
+        # Reuse the cached ISimpleAudioVolume while the target is unchanged —
+        # the audio thread is the only writer, so the check is race-free.
+        if resolved_target == self._cached_process and self._cached_volume is not None:
+            return self._cached_volume, self._cached_process
         wanted = resolved_target.casefold()
         candidates = []
         for session in AudioUtilities.GetAllSessions():
@@ -192,7 +203,10 @@ class MediaVolumeController:
         if not candidates:
             return None, resolved_target
         active = next((session for session in candidates if session.State == 1), candidates[0])
-        return active.SimpleAudioVolume, active.Process.name()
+        volume = active.SimpleAudioVolume
+        self._cached_volume = volume
+        self._cached_process = resolved_target
+        return volume, active.Process.name()
 
     def _matches(self, process_name: str, wanted: str) -> bool:
         process_lower = process_name.casefold()

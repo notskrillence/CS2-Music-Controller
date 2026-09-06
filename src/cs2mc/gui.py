@@ -188,7 +188,7 @@ class MainWindow(QMainWindow):
 
         self.stale_timer = QTimer(self)
         self.stale_timer.timeout.connect(self._check_connection_stale)
-        self.stale_timer.start(1000)
+        self.stale_timer.start(5000)
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         super().resizeEvent(event)
@@ -537,7 +537,7 @@ class MainWindow(QMainWindow):
     def _check_connection_stale(self) -> None:
         import time
 
-        if self.last_gsi_at and time.monotonic() - self.last_gsi_at > 20.0:
+        if self.last_gsi_at and time.monotonic() - self.last_gsi_at > 45.0:
             self.dashboard.set_disconnected()
             self.title_bar.set_connection(False)
 
