@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -31,11 +31,14 @@ from .common import PageHeader, card_layout
 class AboutPage(QWidget):
     """Project identity, credits, and trusted external destinations."""
 
+    update_result = Signal(object)
+
     def __init__(self) -> None:
         super().__init__()
         self._feedback_timer = QTimer(self)
         self._feedback_timer.setSingleShot(True)
         self._feedback_timer.timeout.connect(self._clear_feedback)
+        self.update_result.connect(self._apply_update_result)
 
         root = QVBoxLayout(self)
         root.setContentsMargins(28, 24, 28, 24)
@@ -178,23 +181,17 @@ class AboutPage(QWidget):
             "notskrillence/CS2-Music-Controller",
             current,
             0,  # manual: bypass the daily cache
-            self._on_update_result,
+            self.update_result.emit,  # signal hop: worker thread → GUI thread
             min_interval_seconds=0,
         )
 
-    def _on_update_result(self, info) -> None:
-        from PySide6.QtCore import QTimer as _QTimer
+    def _apply_update_result(self, info) -> None:
+        from .. import __version__ as current
 
-        def apply() -> None:
-            from .. import __version__ as current
-
-            if info.is_newer:
-                self.update_status.setText(f"Version {info.version} is available — you have {current}.")
-            else:
-                self.update_status.setText(f"You are on the latest version ({current}).")
-
-        # Worker thread → GUI thread.
-        _QTimer.singleShot(0, apply)
+        if info.is_newer:
+            self.update_status.setText(f"Version {info.version} is available — you have {current}.")
+        else:
+            self.update_status.setText(f"You are on the latest version ({current}).")
 
     def _open_github(self) -> None:
         open_external_url(GITHUB_URL, self)

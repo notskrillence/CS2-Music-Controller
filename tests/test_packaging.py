@@ -21,7 +21,7 @@ def test_runtime_uses_essentials_without_qt_multimedia():
 
 
 def test_repository_images_are_small_and_not_packaged_as_app_assets():
-    banner = ROOT / "docs/images/banner.jpg"
+    banner = ROOT / "docs/images/banner.png"
     preview = ROOT / "docs/images/social-preview.jpg"
 
     assert banner.is_file()
