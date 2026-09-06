@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/images/banner.jpg" width="100%" alt="CS2 Music Controller — smart music ducking and custom game-event sounds for CS2">
+  <img src="docs/images/banner.png" width="100%" alt="CS2 Music Controller — smart music ducking and custom game-event sounds for CS2">
   <h1>CS2 Music Controller</h1>
   <p><strong>Native Windows music control and custom event sounds for Counter-Strike 2.</strong></p>
   <p>
