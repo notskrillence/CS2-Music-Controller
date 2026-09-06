@@ -187,6 +187,20 @@ class SocialIdentityButton(QPushButton):
         self.setMinimumWidth(156)
 
 
+class DonateButton(QPushButton):
+    """Obround donatr.ee support link with brand theming."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__("♥  Support via donatr.ee", parent)
+        self.setObjectName("SocialIdentityButton")
+        self.setProperty("platform", "donate")
+        self.setToolTip("Support development via donatr.ee")
+        self.setAccessibleName("Donate via donatr.ee")
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setMinimumHeight(40)
+        self.setMinimumWidth(156)
+
+
 
 class TitleBar(QFrame):
     profile_selected = Signal(str)

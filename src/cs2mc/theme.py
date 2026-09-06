@@ -278,6 +278,13 @@ QPushButton#SocialIdentityButton[platform="discord"]:hover {{
     background: #6875f5; border-color: #8993ff;
 }}
 QPushButton#SocialIdentityButton[platform="discord"]:pressed {{ background: #4752c4; }}
+QPushButton#SocialIdentityButton[platform="donate"] {{
+    color: #ffffff; background: #b3541e; border-color: #d97706;
+}}
+QPushButton#SocialIdentityButton[platform="donate"]:hover {{
+    background: #c65f22; border-color: #e8930c;
+}}
+QPushButton#SocialIdentityButton[platform="donate"]:pressed {{ background: #92400e; }}
 QLineEdit, QComboBox {{
     background: {p.surface_low}; color: {p.text}; border: 1px solid {p.outline};
     border-radius: {small}px; padding: 8px 10px; min-height: 22px;

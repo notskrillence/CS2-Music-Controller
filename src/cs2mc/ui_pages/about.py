@@ -15,6 +15,7 @@ from .. import __version__
 from ..app_metadata import (
     CREATOR_NAME,
     DISCORD_USERNAME,
+    DONATE_URL,
     GITHUB_URL,
     GITHUB_USERNAME,
     LICENSE_NAME,
@@ -23,7 +24,7 @@ from ..app_metadata import (
 )
 from ..external_links import open_external_url
 from ..models import resolve_asset_path
-from ..ui_components import SocialIdentityButton
+from ..ui_components import DonateButton, SocialIdentityButton
 from .common import PageHeader, card_layout
 
 
@@ -47,6 +48,7 @@ class AboutPage(QWidget):
         root.addWidget(self._build_project_hero())
         root.addWidget(self._build_identity_card())
         root.addWidget(self._build_source_card())
+        root.addWidget(self._build_update_card())
         root.addStretch()
 
     def _build_project_hero(self) -> QFrame:
@@ -106,8 +108,12 @@ class AboutPage(QWidget):
         )
         discord.clicked.connect(self._copy_discord_username)
 
+        donate = DonateButton()
+        donate.clicked.connect(self._open_donate)
+
         identity_row.addWidget(github)
         identity_row.addWidget(discord)
+        identity_row.addWidget(donate)
         identity_row.addStretch()
 
         self.feedback = QLabel()
@@ -142,8 +148,59 @@ class AboutPage(QWidget):
         layout.addWidget(repository)
         return card
 
+    def _build_update_card(self) -> QFrame:
+        from PySide6.QtWidgets import QPushButton
+
+        card = QFrame()
+        layout = card_layout(card)
+
+        title = QLabel("Updates")
+        title.setObjectName("SectionTitle")
+        self.update_status = QLabel(f"You are running version {__version__}.")
+        self.update_status.setObjectName("Muted")
+        self.update_status.setWordWrap(True)
+
+        check = QPushButton("Check for updates")
+        check.setObjectName("Tonal")
+        check.clicked.connect(self._check_updates)
+
+        layout.addWidget(title)
+        layout.addWidget(self.update_status)
+        layout.addWidget(check)
+        return card
+
+    def _check_updates(self) -> None:
+        from .. import __version__ as current
+        from ..update_check import check_for_updates_async
+
+        self.update_status.setText("Checking for updates…")
+        check_for_updates_async(
+            "notskrillence/CS2-Music-Controller",
+            current,
+            0,  # manual: bypass the daily cache
+            self._on_update_result,
+            min_interval_seconds=0,
+        )
+
+    def _on_update_result(self, info) -> None:
+        from PySide6.QtCore import QTimer as _QTimer
+
+        def apply() -> None:
+            from .. import __version__ as current
+
+            if info.is_newer:
+                self.update_status.setText(f"Version {info.version} is available — you have {current}.")
+            else:
+                self.update_status.setText(f"You are on the latest version ({current}).")
+
+        # Worker thread → GUI thread.
+        _QTimer.singleShot(0, apply)
+
     def _open_github(self) -> None:
         open_external_url(GITHUB_URL, self)
+
+    def _open_donate(self) -> None:
+        open_external_url(DONATE_URL, self)
 
     def _copy_discord_username(self) -> None:
         QApplication.clipboard().setText(DISCORD_USERNAME)

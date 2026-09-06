@@ -185,6 +185,8 @@ class RuntimeSettings:
     gsi_token: str
     port: int = 1337
     appearance: AppearanceSettings = field(default_factory=AppearanceSettings)
+    last_update_check: float = 0.0
+    seen_version: str = ""
 
 
 @dataclass(frozen=True, slots=True)

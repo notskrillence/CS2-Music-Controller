@@ -16,4 +16,4 @@ def test_project_credit_and_repository_are_stable():
 def test_release_version_is_current():
     from cs2mc import __version__
 
-    assert __version__ == "0.2.5"
+    assert __version__ == "0.3.0"

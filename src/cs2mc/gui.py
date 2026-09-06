@@ -49,6 +49,7 @@ from .ui_pages import (
     ProfilesPage,
     SetupPage,
     StatesPage,
+    WelcomeDialog,
 )
 
 
@@ -58,6 +59,7 @@ class SignalBridge(QObject):
     log = Signal(str)
     sessions = Signal(object)
     media = Signal(object)
+    update = Signal(object)
 
 
 class MainWindow(QMainWindow):
@@ -175,6 +177,7 @@ class MainWindow(QMainWindow):
         self.bridge.log.connect(self._log_received)
         self.bridge.sessions.connect(self._sessions_received)
         self.bridge.media.connect(self._media_received)
+        self.bridge.update.connect(self._update_available)
 
         self._load_profile(self.current_profile)
         self._load_kill_streak_profile(self.current_kill_streak_profile)
@@ -544,6 +547,40 @@ class MainWindow(QMainWindow):
     def _log_received(self, message: str) -> None:
         self.dashboard.runtime_status.setText(message)
 
+    def _update_available(self, info) -> None:
+        from PySide6.QtWidgets import QMessageBox
+
+        self.store.record_update_check(info.version)
+        if not info.is_newer:
+            return
+        answer = QMessageBox.question(
+            self,
+            "Update available",
+            f"Version {info.version} is available (you have {__version__}).\nOpen the release page?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if answer == QMessageBox.StandardButton.Yes:
+            open_external_url(info.url, self)
+
+    def run_startup_tasks(self) -> None:
+        """First-launch setup, welcome card, and the daily update check.
+
+        One QTimer.singleShot chain — no repeating timers, zero idle cost.
+        """
+        self.run_first_launch_setup()
+        if self.store.settings.seen_version != __version__:
+            self.store.record_update_check()
+            WelcomeDialog(self).exec()
+        from .update_check import check_for_updates_async
+
+        if check_for_updates_async(
+            "notskrillence/CS2-Music-Controller",
+            __version__,
+            self.store.settings.last_update_check,
+            self.bridge.update.emit,
+        ):
+            self.store.record_update_check()
+
     def _open_github(self) -> None:
         open_external_url(GITHUB_URL, self)
 
@@ -598,5 +635,5 @@ def run_gui(store: ProfileStore) -> int:
     runtime.start()
     app.aboutToQuit.connect(runtime.stop)
     window.show()
-    QTimer.singleShot(150, window.run_first_launch_setup)
+    QTimer.singleShot(150, window.run_startup_tasks)
     return app.exec()

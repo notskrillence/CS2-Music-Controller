@@ -133,9 +133,24 @@ class ProfileStore:
             gsi_token=token,
             port=port,
             appearance=AppearanceSettings.from_dict(data.get("appearance")),
+            last_update_check=float(data.get("last_update_check") or 0.0),
+            seen_version=str(data.get("seen_version") or ""),
         )
         self._write_settings(settings)
         return settings
+
+    def record_update_check(self, seen_version: str = "") -> None:
+        import time
+
+        from . import __version__
+
+        with self._lock:
+            self._settings = replace(
+                self._settings,
+                last_update_check=time.time(),
+                seen_version=seen_version or __version__,
+            )
+            self._write_settings(self._settings)
 
     def _write_settings(self, settings: RuntimeSettings) -> None:
         payload = {
@@ -145,6 +160,8 @@ class ProfileStore:
             "gsi_token": settings.gsi_token,
             "port": settings.port,
             "appearance": settings.appearance.to_dict(),
+            "last_update_check": settings.last_update_check,
+            "seen_version": settings.seen_version,
         }
         self._atomic_write(self.settings_path, payload)
 

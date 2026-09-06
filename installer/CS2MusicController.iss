@@ -1,5 +1,5 @@
 #define MyAppName "CS2 Music Controller"
-#define MyAppVersion "0.2.5"
+#define MyAppVersion "0.3.0"
 #define MyAppPublisher "skrilll"
 #define MyAppExeName "CS2MusicController.exe"
 

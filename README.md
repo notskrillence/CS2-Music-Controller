@@ -137,7 +137,7 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 The build uses PyInstaller's `onedir` mode for faster startup and simpler diagnosis. The final installer is written to:
 
 ```text
-installer\output\CS2MusicController-Setup-0.2.5.exe
+installer\output\CS2MusicController-Setup-0.3.0.exe
 ```
 
 The release environment installs `PySide6-Essentials` instead of the full PySide6 alias. Sound playback uses the built-in Windows MCI service rather than QtMultimedia or WinRT MediaPlayer, so the installer does not carry the PySide6 Addons multimedia stack or dedicated WinRT playback wheels. The build also excludes unused QML/Quick modules, removes optional Qt plugin trees, enables stronger Inno Setup compression, and prints the exact portable and installer sizes after each build.

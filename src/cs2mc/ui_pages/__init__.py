@@ -5,6 +5,7 @@ from .kill_streaks import KillStreakPage
 from .profiles import ProfilesPage
 from .setup import OnboardingDialog, SetupPage
 from .states import StatesPage
+from .welcome import WelcomeDialog
 
 __all__ = [
     "AboutPage",
@@ -15,4 +16,5 @@ __all__ = [
     "ProfilesPage",
     "SetupPage",
     "StatesPage",
+    "WelcomeDialog",
 ]

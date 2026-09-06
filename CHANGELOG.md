@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.2.5
+## 0.3.0
+
+- Added automatic update checks against GitHub releases with a one-click prompt when a newer version is available.
+- Added a welcome dialog on first launch of each version with quick access to star the repository and support development.
+- Added donation support via `donatr.ee` in the welcome dialog and About page.
+- Added a manual "Check for updates" action on the About page.
+- Reduced idle CPU usage to near zero: GSI throttle relaxed, duplicate payloads skipped, media polling slowed, and redundant UI repaints removed.
+- Reduced GSI traffic by dropping the unused `player_match_stats` node.
 
 - Fixed silent Kill Streaks Test buttons after the installer-size optimization.
 - Replaced the unreliable local-file WinRT MediaPlayer path with Windows MCI for asynchronous WAV and MP3 playback.
