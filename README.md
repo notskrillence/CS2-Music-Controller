@@ -65,11 +65,11 @@ Volume changes run on a coalescing background worker, so rapid GSI updates do no
 Each supported state can play an optional WAV file when the state begins. State sounds have their own enable switch and volume control.
 
 ### Kill-streak sequences
-
+<img src="docs/images/ks.png" width="100%" alt="killstreak image">
 Kill-streak sound profiles are independent from music profiles. Assign WAV or MP3 audio to kills one through five, then switch packs directly from the Kill Streaks page without changing any music levels. The sequence uses CS2's round-kill value and resets when the map round changes. The three built-in profiles are **VALORANT**, **Reaver**, and **Tones**. Their definitions resolve the expected files from `assets/sounds/default`, and missing files are identified directly in the interface.
 
 ### Profiles and presets
-
+<img src="docs/images/profiles.png" width="100%" alt="profiles image">
 Audio profiles store:
 
 - State volumes
@@ -82,7 +82,7 @@ Kill-streak profiles are stored and switched independently, including their five
 Bundled presets provide three starting points: **Balanced**, **Focus**, and **Cinematic**. Profiles switch immediately from the integrated title bar or one-click cards. They can also be created, renamed, duplicated, imported, exported, and deleted. The first five profiles are available through `Ctrl+1` to `Ctrl+5`.
 
 ### Appearance and album-aware color
-
+<img src="docs/images/material.png" width="100%" alt="materialui image">
 The interface uses a near-AMOLED surface hierarchy and one coordinated accent role instead of unrelated per-state colors. Appearance modes include:
 
 - **Album dynamic** — samples Windows media artwork once per track, caches the result, and uses it for selection and emphasis
