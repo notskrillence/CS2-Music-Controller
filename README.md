@@ -12,24 +12,20 @@
   </p>
 </div>
 
-## Status
-
-This repository contains the first native desktop release foundation. It focuses on one job: making CS2 game-event audio easy to install, configure, and use.
+## Features
 
 - Simple to Install
-- Reliable
+- Extremely Reliable  (never crashed once in 128h, while another similar app would crash every ~2h)
 - Windows per-process audio control
 - Automatic CS2 cfg discovery
 - Game State Integration setup and repair
 - One-click profiles, presets, and Ctrl+1 through Ctrl+5 switching
 - Custom WAV event sounds and WAV/MP3 kill-streak packs
 - Five-step kill-streak sequences
-- Near-AMOLED Material-inspired themes with optional album-derived accents
-- Rounded custom sliders, progress indicators, scrollbars, and clipped album artwork
-- Sleek
+- AMOLED Material-inspired themes with optional album-derived accents
 - Localhost-only authenticated listener for maximum security
 
-Demo: https://youtu.be/v3huClU12kA
+### Demo: https://youtu.be/v3huClU12kA
 
 [![Support notskrillence / CS2 Music Controller](https://img.shields.io/badge/Donate-donatr.ee-6C5CE7?style=for-the-badge)](https://donatr.ee/notskrillence)
 ## Features
